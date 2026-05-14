@@ -1,0 +1,86 @@
+*,
+*::before,
+*::after {
+    margin: 0;
+    /* Обнуление внешних отступов */
+    padding: 0;
+    /* Обнуление внутренних отступов */
+    border: none;
+    /* Обнуление границ */
+    box-sizing: border-box;
+    /* Включение padding/border в размер элемента */
+}
+
+ol,
+ul {
+    list-style: none;
+}
+
+body {
+    font-family: 'Share Tech Mono', monospace;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+h2 {
+    font-size: 1.2em;
+}
+
+.toxicText {
+    letter-spacing: 1px;
+    color: #8BFF9F;
+}
+
+.borderSetting {
+    border: 0.5px solid #00FF41;
+}
+
+.centered {
+    display: flex;
+    justify-content: center;
+    /* Horizontal centering */
+    align-items: center;
+    /* Vertical centering */
+}
+
+.mainBlock {
+    height: 100vh;
+}
+
+.startedMenu {
+    width: 40%;
+    height: 30%;
+    box-shadow:
+        0 0 6px rgba(0, 255, 65, 0.45),
+        0 0 12px rgba(0, 255, 65, 0.25);
+}
+
+.menuHeader {
+    /* это высота header*/
+    height: 40%;
+}
+
+.menuForm {
+    /*остаток от header*/
+    height: 60%;
+}
+
+.interactionFormElement {
+    width: 40%;
+    padding: 4px 12px;
+    margin: 5px;
+
+    background-color: #000;
+    outline: none;
+
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+
+    transition: 0.2s ease;
+}
+
+.interactionFormElement:focus {
+    box-shadow:
+        0 0 6px rgba(0, 255, 65, 0.45),
+        0 0 12px rgba(0, 255, 65, 0.25);
+}
