@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.tennisscoreboard.dto.MatchAndScoreResponseDTO;
 import org.example.tennisscoreboard.dto.PointWinnerRequestDTO;
-import org.example.tennisscoreboard.exception.TestException;
 import org.example.tennisscoreboard.service.match.MatchScoreCalculationService;
 import org.example.tennisscoreboard.service.match.OngoingMatchesService;
 import org.example.tennisscoreboard.util.ServletUtil;
@@ -50,6 +49,7 @@ public class MatchScoreServlet extends HttpServlet {
         //вернуть обновленный объект
         MatchAndScoreResponseDTO updatedMatchScoreResponseDTO = matchScoreCalculationService.updateMatchScore(pointWinnerRequestDTO, matchAndScoreResponseDTO);
         ongoingMatchesService.saveScore(uuid, updatedMatchScoreResponseDTO);
+
 
         ServletUtil.sendResponse(HttpServletResponse.SC_CREATED, updatedMatchScoreResponseDTO, response);
     }
