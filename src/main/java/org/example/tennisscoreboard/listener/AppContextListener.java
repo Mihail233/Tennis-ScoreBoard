@@ -4,7 +4,10 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
+import org.example.tennisscoreboard.common.BaseDAO;
 import org.example.tennisscoreboard.dao.player.H2PlayerDAO;
+import org.example.tennisscoreboard.entity.Player;
+import org.example.tennisscoreboard.service.match.MatchScoreCalculationService;
 import org.example.tennisscoreboard.service.match.OngoingMatchesService;
 import org.example.tennisscoreboard.service.player.PlayerService;
 import org.hibernate.SessionFactory;
@@ -19,15 +22,18 @@ public class AppContextListener implements ServletContextListener {
         Configuration configuration = new Configuration().configure();
         SessionFactory sessionFactory = configuration.buildSessionFactory();
 
-        H2PlayerDAO h2PlayerDAO = new H2PlayerDAO(sessionFactory);
+        //переделал с H2PlayerDAO -> BaseDAO<Player> - не тестировал
+        BaseDAO<Player> h2PlayerDAO = new H2PlayerDAO(sessionFactory);
 
         PlayerService playerService = new PlayerService(h2PlayerDAO);
         OngoingMatchesService ongoingMatchesService = new OngoingMatchesService();
+        MatchScoreCalculationService matchScoreCalculationService = new MatchScoreCalculationService();
 
         ServletContext context = sce.getServletContext();
         context.setAttribute("sessionFactory", sessionFactory);
         context.setAttribute("playerService", playerService);
         context.setAttribute("ongoingMatchesService", ongoingMatchesService);
+        context.setAttribute("matchScoreCalculationService", matchScoreCalculationService);
     }
 
     @Override

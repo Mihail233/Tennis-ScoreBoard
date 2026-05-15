@@ -3,6 +3,7 @@ package org.example.tennisscoreboard.service.match;
 import org.example.tennisscoreboard.dto.MatchAndScoreResponseDTO;
 import org.example.tennisscoreboard.dto.PlayersDTO;
 import org.example.tennisscoreboard.entity.*;
+import org.example.tennisscoreboard.exception.TestException;
 import org.example.tennisscoreboard.mapper.MatchAndScoreMapper;
 import org.example.tennisscoreboard.mapper.PlayerMapper;
 
@@ -19,10 +20,27 @@ public class OngoingMatchesService {
         Player playerOne = playerMapper.toObject(playersDTO.playerOne());
         Player playerTwo = playerMapper.toObject(playersDTO.playerTwo());
 
-        UUID uuid = UUID.randomUUID();
+        //UUID uuid = UUID.randomUUID();
+        UUID uuid = UUID.fromString("f609a413-255a-4eae-925a-dedddd67e470");
+
         MatchAndScore matchAndScore = new MatchAndScore(new Match(playerOne, playerTwo), new GeneralScore(new Score(), new Score()));
         ongoingMatches.put(uuid, matchAndScore);
 
         return matchAndScoreMapper.toDto(matchAndScore);
+    }
+
+    public MatchAndScoreResponseDTO getOngoingMatch(String uuid) {
+        MatchAndScore matchAndScore = ongoingMatches.get(UUID.fromString(uuid));
+
+        if (matchAndScore == null) {
+            throw new TestException("матч не найден");
+        }
+
+        return matchAndScoreMapper.toDto(matchAndScore);
+    }
+
+    public void saveScore(String uuid, MatchAndScoreResponseDTO matchAndScoreResponseDTO) {
+        MatchAndScore matchAndScore = matchAndScoreMapper.toObject(matchAndScoreResponseDTO);
+        ongoingMatches.put(UUID.fromString(uuid), matchAndScore);
     }
 }

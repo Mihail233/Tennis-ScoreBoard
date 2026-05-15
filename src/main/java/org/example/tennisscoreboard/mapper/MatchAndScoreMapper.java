@@ -10,4 +10,6 @@ public interface MatchAndScoreMapper {
     MatchAndScoreMapper INSTANCE = Mappers.getMapper(MatchAndScoreMapper.class);
 
     MatchAndScoreResponseDTO toDto(MatchAndScore matchAndScore);
+
+    MatchAndScore toObject(MatchAndScoreResponseDTO matchAndScoreResponseDTO);
 }
