@@ -45,8 +45,7 @@ public class MatchScoreServlet extends HttpServlet {
 
         MatchAndScoreResponseDTO matchAndScoreResponseDTO = ongoingMatchesService.getOngoingMatch(uuid);
 
-        //ДОБАВИТЬ валидацию что именно правильный id прислали
-        //вернуть обновленный объект
+        //ДОБАВИТЬ валидацию что именно правильный id прислали(один из двух которые матче могут быть)
         MatchAndScoreResponseDTO updatedMatchScoreResponseDTO = matchScoreCalculationService.updateMatchScore(pointWinnerRequestDTO, matchAndScoreResponseDTO);
         ongoingMatchesService.saveScore(uuid, updatedMatchScoreResponseDTO);
 

@@ -7,14 +7,14 @@ import org.example.tennisscoreboard.mapper.MatchAndScoreMapper;
 import org.example.tennisscoreboard.mapper.PointWinnerMapper;
 
 public class MatchScoreCalculationService {
-    private static final int WIN_SETS_IN_ONGOING_MATCH = 2;
-    private static final int GAMES_IN_SET = 6;
-    private static final int POINTS_IN_TIEBREAK = 7;
-    private static final int WIN_MARGIN = 2;
+    private static final int MINIMUM_POINTS_IN_TIEBREAK = 7;
+    private static final int MINIMUM_GAMES_IN_SET = 6;
+    private static final int MINIMUM_MARGIN = 2;
+    private static final int SETS_TO_WIN_MATCH = 2;
     private static final int AD = -1;
     private static final int RESET = -2;
 
-    private static final int ZERO_POINT = 0;
+    private static final int LOVE = 0;
     private static final int ONE_POINT = 15;
     private static final int TWO_POINT = 30;
     private static final int THREE_POINT = 40;
@@ -26,34 +26,33 @@ public class MatchScoreCalculationService {
 
         PointWinner pointWinner = pointWinnerMapper.toObject(pointWinnerRequestDTO);
         MatchAndScore matchAndScore = matchAndScoreMapper.toObject(matchAndScoreResponseDTO);
-
-        Long pointWinnerId = Long.valueOf(pointWinner.getPointWinnerId());
         Match match = matchAndScore.getMatch();
+
         Long playerOneId = match.getPlayerOne().getId();
+        Long pointWinnerId = Long.valueOf(pointWinner.getPointWinnerId());
+
         Score playerOneScore = matchAndScore.getGeneralScore().getPlayerOneScore();
         Score playerTwoScore = matchAndScore.getGeneralScore().getPlayerTwoScore();
 
         if (playerOneId.equals(pointWinnerId)) {
-            updatePoint(playerOneScore, playerTwoScore);
-            updateGame(playerOneScore, playerTwoScore);
-            updateSet(playerOneScore, playerTwoScore);
-            updateWinner(match.getPlayerOne(), playerOneScore, matchAndScore);
-
+            updateMatchScoreCertainPlayer(playerOneScore, playerTwoScore, match.getPlayerOne(), match);
         } else {
-            updatePoint(playerTwoScore, playerOneScore);
-            updateGame(playerTwoScore, playerOneScore);
-            updateSet(playerTwoScore, playerOneScore);
-            updateWinner(match.getPlayerTwo(), playerTwoScore, matchAndScore);
+            updateMatchScoreCertainPlayer(playerTwoScore, playerOneScore, match.getPlayerTwo(), match);
         }
 
         return matchAndScoreMapper.toDto(matchAndScore);
     }
 
-    private void updatePoint(Score winnerScore, Score loserScore) {
-        int winnerGames = winnerScore.getGames();
-        int loserGames = loserScore.getGames();
+    private void updateMatchScoreCertainPlayer(Score winnerScore, Score loserScore, Player player, Match match) {
+        updatePoint(winnerScore, loserScore);
+        updateGame(winnerScore, loserScore);
+        updateSet(winnerScore, loserScore);
+        updateWinner(winnerScore, player, match);
+    }
 
-        if (hasTiebreak(winnerGames, loserGames)) {
+    private void updatePoint(Score winnerScore, Score loserScore) {
+
+        if (hasTiebreak(winnerScore.getGames(), loserScore.getGames())) {
             updatePointInTiebreak(winnerScore, loserScore);
 
         } else {
@@ -64,15 +63,15 @@ public class MatchScoreCalculationService {
     }
 
     private boolean hasTiebreak(int winnerGames, int loserGames) {
-        return winnerGames == GAMES_IN_SET && loserGames == GAMES_IN_SET;
+        return winnerGames == MINIMUM_GAMES_IN_SET && loserGames == MINIMUM_GAMES_IN_SET;
     }
 
     private void updatePointInTiebreak(Score winnerScore, Score loserScore) {
         //7 win + разница в очка, если нет то играют дальше
         int winnerPoints = winnerScore.getPoints();
-
         winnerPoints++;
         winnerScore.setPoints(winnerPoints);
+
         findWinnerInTiebreak(winnerScore, loserScore);
     }
 
@@ -81,7 +80,7 @@ public class MatchScoreCalculationService {
         int highestPoints = Math.max(winnerScore.getPoints(), loserScore.getPoints());
         int lowestPoints = Math.min(winnerScore.getPoints(), loserScore.getPoints());
 
-        boolean hasWinnerInTieBreak = (highestPoints >= POINTS_IN_TIEBREAK && (highestPoints - lowestPoints >= WIN_MARGIN));
+        boolean hasWinnerInTieBreak = (highestPoints >= MINIMUM_POINTS_IN_TIEBREAK && (highestPoints - lowestPoints >= MINIMUM_MARGIN));
 
         if (hasWinnerInTieBreak) {
             winnerScore.setPoints(RESET);
@@ -91,17 +90,17 @@ public class MatchScoreCalculationService {
     //AD - кидать в DTO, а здесь реализовать по рамках числового формата
     private void updatePointInStandardGame(Score winnerScore, Score loserScore) {
 
-        boolean hasTieScore = hasTieScore(winnerScore, loserScore);
+        boolean hasDeuce = hasDeuce(winnerScore, loserScore);
         boolean hasAdvantage = hasAdvantage(winnerScore, loserScore);
 
-        updatePointInDifferentStage(hasTieScore, hasAdvantage, winnerScore, loserScore);
+        updatePointInDifferentStage(hasDeuce, hasAdvantage, winnerScore, loserScore);
     }
 
-    private void updatePointInDifferentStage(boolean hasTieScore, boolean hasAdvantage, Score winnerScore, Score loserScore) {
-        //AD
-        if (hasTieScore) {
+    private void updatePointInDifferentStage(boolean hasDeuce, boolean hasAdvantage, Score winnerScore, Score loserScore) {
+        if (hasDeuce) {
             winnerScore.setPoints(AD);
 
+            //AD
         } else if (hasAdvantage) {
 
             if (winnerScore.getPoints() == AD) {
@@ -111,11 +110,11 @@ public class MatchScoreCalculationService {
             }
 
         } else {
-            addPoint(winnerScore);
+            awardPoint(winnerScore);
         }
     }
 
-    private boolean hasTieScore(Score winnerScore, Score loserScore) {
+    private boolean hasDeuce(Score winnerScore, Score loserScore) {
         return winnerScore.getPoints() == THREE_POINT && loserScore.getPoints() == THREE_POINT;
     }
 
@@ -123,11 +122,10 @@ public class MatchScoreCalculationService {
         return winnerScore.getPoints() == AD || loserScore.getPoints() == AD;
     }
 
-    private void addPoint(Score score) {
-        int points = score.getPoints();
+    private void awardPoint(Score score) {
 
-        switch (points) {
-            case (ZERO_POINT):
+        switch (score.getPoints()) {
+            case (LOVE):
                 score.setPoints(ONE_POINT);
                 break;
             case (ONE_POINT):
@@ -145,12 +143,10 @@ public class MatchScoreCalculationService {
     }
 
     private void resetPoints(Score winnerScore, Score loserScore) {
-        int playerOnePoints = winnerScore.getPoints();
-        int loserPoints = loserScore.getPoints();
 
-        if (hasResetPoints(playerOnePoints) || hasResetPoints(loserPoints)) {
-            winnerScore.setPoints(ZERO_POINT);
-            loserScore.setPoints(ZERO_POINT);
+        if (hasResetPoints(winnerScore.getPoints()) || hasResetPoints(loserScore.getPoints())) {
+            winnerScore.setPoints(LOVE);
+            loserScore.setPoints(LOVE);
         }
     }
 
@@ -160,13 +156,9 @@ public class MatchScoreCalculationService {
 
     private void updateGame(Score winnerScore, Score loserScore) {
         //от pointWinner зависит кому дать game
-
-        int winnerPoints = winnerScore.getPoints();
-        int loserPoints = loserScore.getPoints();
-
         int winnerGames = winnerScore.getGames();
 
-        if (hasEndedGame(winnerPoints, loserPoints)) {
+        if (hasEndedGame(winnerScore.getPoints(), loserScore.getPoints())) {
             winnerGames++;
             winnerScore.setGames(winnerGames);
         }
@@ -175,53 +167,44 @@ public class MatchScoreCalculationService {
     }
 
     private boolean hasEndedGame(int winnerPoints, int loserPoints) {
-        return winnerPoints == ZERO_POINT && loserPoints == ZERO_POINT;
+        return winnerPoints == LOVE && loserPoints == LOVE;
     }
 
     private void resetGames(Score winnerScore, Score loserScore) {
         if (hasWinningSet(winnerScore, loserScore)) {
-            winnerScore.setGames(ZERO_POINT);
-            loserScore.setGames(ZERO_POINT);
+            winnerScore.setGames(LOVE);
+            loserScore.setGames(LOVE);
         }
     }
 
     private boolean hasWinningSet(Score winnerScore, Score loserScore) {
-        // max >=  GAMES_IN_SET  и max - min -> меньше на 2 очка
+        // max >=  MINIMUM_GAMES_IN_SET  и max - min -> меньше на 2 очка
 
         int highestGames = Math.max(winnerScore.getGames(), loserScore.getGames());
         int lowestGames = Math.min(winnerScore.getGames(), loserScore.getGames());
 
-        boolean hasDefaultWinningSet = highestGames >= GAMES_IN_SET && (highestGames - lowestGames >= WIN_MARGIN);
-        boolean hasTiebreakWinningSet = highestGames > GAMES_IN_SET && lowestGames == GAMES_IN_SET;
+        boolean hasDefaultWinningSet = highestGames >= MINIMUM_GAMES_IN_SET && (highestGames - lowestGames >= MINIMUM_MARGIN);
+        boolean hasTiebreakWinningSet = highestGames > MINIMUM_GAMES_IN_SET && lowestGames == MINIMUM_GAMES_IN_SET;
 
         return hasDefaultWinningSet || hasTiebreakWinningSet;
     }
 
     private void updateSet(Score winnerScore, Score loserScore) {
-
-        int winnerPoints = winnerScore.getPoints();
-        int loserPoints = loserScore.getPoints();
-
-        int winnerGames = winnerScore.getGames();
-        int loserGames = loserScore.getGames();
-
         int winnerSets = winnerScore.getSets();
 
-        if (hasEndedSet(winnerPoints, loserPoints, winnerGames, loserGames)) {
+        if (hasEndedSet(winnerScore.getPoints(), loserScore.getPoints(), winnerScore.getGames(), loserScore.getGames())) {
             winnerSets++;
             winnerScore.setSets(winnerSets);
         }
     }
 
     private boolean hasEndedSet(int winnerPoints, int loserPoints, int winnerGames, int loserGames) {
-        return winnerPoints == ZERO_POINT && loserPoints == ZERO_POINT && winnerGames == ZERO_POINT && loserGames == ZERO_POINT;
+        return winnerPoints == LOVE && loserPoints == LOVE && winnerGames == LOVE && loserGames == LOVE;
     }
 
-    private void updateWinner(Player winner, Score winnerScore, MatchAndScore matchAndScore) {
-        int winnerSets = winnerScore.getSets();
-
-        if (winnerSets == WIN_SETS_IN_ONGOING_MATCH) {
-            matchAndScore.getMatch().setWinner(winner);
+    private void updateWinner(Score winnerScore, Player winner, Match match) {
+        if (winnerScore.getSets() == SETS_TO_WIN_MATCH) {
+            match.setWinner(winner);
         }
     }
 }
