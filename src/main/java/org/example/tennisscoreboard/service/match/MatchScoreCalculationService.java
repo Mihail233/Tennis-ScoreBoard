@@ -67,7 +67,7 @@ public class MatchScoreCalculationService {
     }
 
     private void updatePointInTiebreak(Score winnerScore, Score loserScore) {
-        //7 win + разница в очка, если нет то играют дальше
+        //7 win + нужна разница в 2 очка, если нет то играют дальше
         int winnerPoints = winnerScore.getPoints();
         winnerPoints++;
         winnerScore.setPoints(winnerPoints);
@@ -100,7 +100,7 @@ public class MatchScoreCalculationService {
         if (hasDeuce) {
             winnerScore.setPoints(AD);
 
-            //AD
+            //Advantage - AD
         } else if (hasAdvantage) {
 
             if (winnerScore.getPoints() == AD) {
@@ -155,7 +155,7 @@ public class MatchScoreCalculationService {
     }
 
     private void updateGame(Score winnerScore, Score loserScore) {
-        //от pointWinner зависит кому дать game
+        //от pointWinner зависит кому дать GAME
         int winnerGames = winnerScore.getGames();
 
         if (hasEndedGame(winnerScore.getPoints(), loserScore.getPoints())) {
@@ -178,7 +178,7 @@ public class MatchScoreCalculationService {
     }
 
     private boolean hasWinningSet(Score winnerScore, Score loserScore) {
-        // max >=  MINIMUM_GAMES_IN_SET  и max - min -> меньше на 2 очка
+        // (max >= MINIMUM_GAMES_IN_SET) и (max - min -> разница в 2 очка)
 
         int highestGames = Math.max(winnerScore.getGames(), loserScore.getGames());
         int lowestGames = Math.min(winnerScore.getGames(), loserScore.getGames());

@@ -9,7 +9,7 @@ import org.example.tennisscoreboard.exception.TestException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-public class H2PlayerDAO extends BaseDAO<Player> {
+public class H2PlayerDAO extends BaseDAO<Player, Player> {
     //Supplier, Consumer, Function
 
     public H2PlayerDAO(SessionFactory sessionFactory) {

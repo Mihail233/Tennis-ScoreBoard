@@ -39,12 +39,13 @@ public class NewMatchServlet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String json = ServletUtil.getJson(request);
 
-        //не переданы поля -> null, не десериализует не нужные поля(если отправлять не нужные поля)
+        //не переданы нужные поля -> null
+        //не десериализует ненужные поля(если отправлять множество нужных и ненужных полей)
         PlayersRequestDTO playersRequestDTO = ServletUtil.deserialize(json, PlayersRequestDTO.class);
         ValidationUtil.validate(playersRequestDTO);
 
         PlayersDTO playersDTO = playerService.findPlayers(playersRequestDTO);
-        MatchAndScoreResponseDTO matchAndScoreResponseDTO = ongoingMatchesService.registerNewMatch(playersDTO);
+        MatchAndScoreResponseDTO matchAndScoreResponseDTO = ongoingMatchesService.addNewMatch(playersDTO);
 
         ServletUtil.sendResponse(HttpServletResponse.SC_CREATED, matchAndScoreResponseDTO, response);
     }

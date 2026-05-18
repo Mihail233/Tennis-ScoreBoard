@@ -10,7 +10,7 @@ import org.example.tennisscoreboard.mapper.PlayersMapper;
 @RequiredArgsConstructor
 public class PlayerService {
     private final PlayersMapper playersMapper = PlayersMapper.INSTANCE;
-    private final BaseDAO<Player> h2PlayerDAO;
+    private final BaseDAO<Player, Player> h2PlayerDAO;
 
     //если 2 пользователя исп app параллельно,
     // у первого при select будет null, второй пользователь вставит в этот момент player,

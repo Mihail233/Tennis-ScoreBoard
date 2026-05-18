@@ -1,6 +1,7 @@
 package org.example.tennisscoreboard.service.match;
 
 import org.example.tennisscoreboard.dto.MatchAndScoreResponseDTO;
+import org.example.tennisscoreboard.dto.PlayerDTO;
 import org.example.tennisscoreboard.dto.PlayersDTO;
 import org.example.tennisscoreboard.entity.*;
 import org.example.tennisscoreboard.exception.TestException;
@@ -16,7 +17,7 @@ public class OngoingMatchesService {
     private final MatchAndScoreMapper matchAndScoreMapper = MatchAndScoreMapper.INSTANCE;
     private final Map<UUID, MatchAndScore> ongoingMatches = new HashMap<>();
 
-    public MatchAndScoreResponseDTO registerNewMatch(PlayersDTO playersDTO) {
+    public MatchAndScoreResponseDTO addNewMatch(PlayersDTO playersDTO) {
         Player playerOne = playerMapper.toObject(playersDTO.playerOne());
         Player playerTwo = playerMapper.toObject(playersDTO.playerTwo());
 
@@ -42,5 +43,12 @@ public class OngoingMatchesService {
     public void saveScore(String uuid, MatchAndScoreResponseDTO matchAndScoreResponseDTO) {
         MatchAndScore matchAndScore = matchAndScoreMapper.toObject(matchAndScoreResponseDTO);
         ongoingMatches.put(UUID.fromString(uuid), matchAndScore);
+    }
+
+    public void deleteFinishedMatch(String uuid, PlayerDTO winnerDTO) {
+        Player winner = playerMapper.toObject(winnerDTO);
+        if (winner != null) {
+            ongoingMatches.remove(UUID.fromString(uuid));
+        }
     }
 }

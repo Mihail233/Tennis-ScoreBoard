@@ -6,23 +6,23 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-public abstract class BaseDAO<T> {
+public abstract class BaseDAO<K, E> {
     private final SessionFactory sessionFactory;
 
     public BaseDAO(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 
-    public abstract void run(Player player, Session session);
+    protected abstract void run(K entity, Session session);
 
-    public abstract T run(String playerName, Session session);
+    protected abstract E run(String name, Session session);
 
-    public void insert(Player player) {
+    public void insert(K entity) {
 
         try (Session session = sessionFactory.openSession()) {
 
             try {
-                run(player, session);
+                run(entity, session);
             } catch (Exception e) {
                 Transaction transaction = session.getTransaction();
                 if (transaction != null) {
@@ -34,11 +34,11 @@ public abstract class BaseDAO<T> {
         }
     }
 
-    public T findByName(String playerName) {
+    public E findByName(String name) {
         try (Session session = sessionFactory.openSession()) {
 
             try {
-                return run(playerName, session);
+                return run(name, session);
 
             } catch (Exception e) {
                 Transaction transaction = session.getTransaction();

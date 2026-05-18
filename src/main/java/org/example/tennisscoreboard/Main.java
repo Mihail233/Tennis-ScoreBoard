@@ -11,10 +11,13 @@ public class Main {
 //        PlayerDTO playerDTO = PlayerMapper.INSTANCE.toDTO(player);
 //        PlayersDTO playersDTO = PlayersMapper.INSTANCE.toDTO(new Player(1L, "test"), new Player(2L, "TEST2"));
 
+        Score playerOneScore = new Score(-1, 3, 4);
+        Score playerTwoScore = new Score(1, -1, 3);
 
-        MatchAndScore matchAndScore = new MatchAndScore(new Match(playerOne, playerTwo), new GeneralScore());
+        MatchAndScore matchAndScore = new MatchAndScore(new Match(playerOne, playerTwo), new GeneralScore(playerOneScore, playerTwoScore));
 
         MatchAndScoreResponseDTO matchAndScoreResponseDTO = MatchAndScoreMapper.INSTANCE.toDto(matchAndScore);
+        MatchAndScore matchAndScore1 = MatchAndScoreMapper.INSTANCE.toObject(matchAndScoreResponseDTO);
         int i = 0 ;
     }
 }
